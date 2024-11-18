@@ -5,7 +5,7 @@ export default function Home() {
 		<>
 			<section>
 				<div className="w-full h-screen flex justify-center items-center">
-					<Maze columns={5} rows={5} cellSize={75} />
+					<Maze columns={5} rows={5} cellSizeInPx={75} />
 				</div>
 			</section>
 		</>

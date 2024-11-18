@@ -18,7 +18,7 @@ const Maze = ({ columns, rows, cellSizeInPx }: { columns: number; rows: number; 
 		const height = rows * cellSizeInPx;
 		const width = rows * cellSizeInPx;
 
-		const svg = d3.select(svgRef.current).attr("width", width).attr("height", height).attr("class", "");
+		const svg = d3.select(svgRef.current).attr("width", width).attr("height", height);
 
 		// Generate grid data
 		const gridData = [];
