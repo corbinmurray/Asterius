@@ -1,6 +1,6 @@
 export function aStar(graph: Record<string, Cell[]>, start: Cell, goal: Cell, onVisit: (cell: Cell) => void, onComplete: (path: Cell[]) => void) {
 	const openSet: Set<string> = new Set();
-	const cameFrom: Record<string, string | null> = {};
+	const cameFrom: Record<string, Cell> = {};
 	const gScore: Record<string, number> = {};
 	const fScore: Record<string, number> = {};
 
@@ -20,9 +20,10 @@ export function aStar(graph: Record<string, Cell[]>, start: Cell, goal: Cell, on
 
 		// If the goal is reached
 		if (currentCell.x === goal.x && currentCell.y === goal.y) {
-			// const path = reconstructPath(cameFrom, currentCell);
-			// onComplete(path);
-			onComplete([]);
+			const path = reconstructPath(cameFrom, currentCell, start);
+			console.log("Finished with path", path);
+			onComplete(path);
+			// onComplete([]);
 			return;
 		}
 
@@ -33,7 +34,8 @@ export function aStar(graph: Record<string, Cell[]>, start: Cell, goal: Cell, on
 			const tentativeGScore = gScore[currentKey] + 1;
 
 			if (tentativeGScore < (gScore[neighborKey] || Infinity)) {
-				cameFrom[neighborKey] = currentKey;
+				const [cx, cy] = keyToCoordinates(currentKey);
+				cameFrom[neighborKey] = { x: cx, y: cy };
 				gScore[neighborKey] = tentativeGScore;
 				fScore[neighborKey] = gScore[neighborKey] + heuristic(neighbor, goal);
 
@@ -50,26 +52,31 @@ export function aStar(graph: Record<string, Cell[]>, start: Cell, goal: Cell, on
 
 export const cellToKey = (cell: Cell): string => `${cell.x},${cell.y}`;
 
-export const keyToCoordinates = (key: string): number[] => key.split(",").map(Number);
+export const keyToCoordinates = (key: string): number[] => key?.split(",")?.map(Number);
 
 export const heuristic = (a: Cell, b: Cell) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 
-export const reconstructPath = (cameFrom: Record<string, string | null>, current: Cell): Cell[] => {
-	try {
-		const path: Cell[] = [];
+export const reconstructPath = (cameFrom: Record<string, Cell>, current: Cell, start: Cell): Cell[] => {
+	const path: Cell[] = [];
 
-		let currentKey: string | null = cellToKey(current);
-		while (currentKey) {
-			const [x, y] = keyToCoordinates(currentKey);
-			path.unshift({ x, y });
-			currentKey = cameFrom[currentKey];
+	console.log("Reconstruct cameFrom", cameFrom);
+
+	while (current) {
+		path.push(current);
+		const parent = cameFrom[cellToKey(current)];
+
+		if (!parent) break;
+
+		current = parent;
+
+		// Stop if we reach the start node
+		if (current.x === start.x && current.y === start.y) {
+			break;
 		}
-
-		return path;
-	} catch (err) {
-		console.error(err);
-		return [];
 	}
+
+	// Reverse teh path to get it from start to goal
+	return path.reverse();
 };
 
 export type Cell = { x: number; y: number };
