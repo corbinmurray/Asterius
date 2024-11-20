@@ -22,6 +22,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "../cv-site/components/Navbar.tsx", "../cv-site/components/ThemeToggle.tsx"],
   "exclude": ["node_modules"]
 }

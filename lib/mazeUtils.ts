@@ -1,107 +1,12 @@
-export function aStar(graph: Record<string, Cell[]>, start: Cell, goal: Cell, onVisit: (cell: Cell) => void, onComplete: (path: Cell[]) => void) {
-	const openSet: Set<string> = new Set();
-	const cameFrom: Record<string, Cell> = {};
-	const gScore: Record<string, number> = {};
-	const fScore: Record<string, number> = {};
-
-	gScore[cellToKey(start)] = 0;
-	fScore[cellToKey(start)] = heuristic(start, goal);
-
-	openSet.add(cellToKey(start));
-
-	while (openSet.size > 0) {
-		// Get the node in openSet with the lowest fScore
-		let currentKey = Array.from(openSet).reduce((a, b) => (fScore[a] < fScore[b] ? a : b));
-		const [cx, cy] = keyToCoordinates(currentKey);
-		const currentCell: Cell = { x: cx, y: cy };
-
-		// Notify visited cell
-		onVisit(currentCell);
-
-		// If the goal is reached
-		if (currentCell.x === goal.x && currentCell.y === goal.y) {
-			const path = reconstructPath(cameFrom, currentCell, start);
-			console.log("Finished with path", path);
-			onComplete(path);
-			// onComplete([]);
-			return;
-		}
-
-		openSet.delete(currentKey);
-
-		for (const neighbor of graph[currentKey] || []) {
-			const neighborKey = cellToKey(neighbor);
-			const tentativeGScore = gScore[currentKey] + 1;
-
-			if (tentativeGScore < (gScore[neighborKey] || Infinity)) {
-				const [cx, cy] = keyToCoordinates(currentKey);
-				cameFrom[neighborKey] = { x: cx, y: cy };
-				gScore[neighborKey] = tentativeGScore;
-				fScore[neighborKey] = gScore[neighborKey] + heuristic(neighbor, goal);
-
-				if (!openSet.has(neighborKey)) {
-					openSet.add(neighborKey);
-				}
-			}
-		}
-
-		// No viable path found
-		onComplete([]);
-	}
-}
-
-export const cellToKey = (cell: Cell): string => `${cell.x},${cell.y}`;
+import { Cell, keyToCell, Maze } from "@/lib/shared";
 
 export const keyToCoordinates = (key: string): number[] => key?.split(",")?.map(Number);
 
-export const heuristic = (a: Cell, b: Cell) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
-
-export const reconstructPath = (cameFrom: Record<string, Cell>, current: Cell, start: Cell): Cell[] => {
-	const path: Cell[] = [];
-
-	console.log("Reconstruct cameFrom", cameFrom);
-
-	while (current) {
-		path.push(current);
-		const parent = cameFrom[cellToKey(current)];
-
-		if (!parent) break;
-
-		current = parent;
-
-		// Stop if we reach the start node
-		if (current.x === start.x && current.y === start.y) {
-			break;
-		}
-	}
-
-	// Reverse teh path to get it from start to goal
-	return path.reverse();
-};
-
-export type Cell = { x: number; y: number };
-export type Direction = "North" | "South" | "East" | "West";
-export type Maze = Map<string, Set<Direction>>;
-
-export const DIRECTIONS: Record<Direction, { dx: number; dy: number }> = {
-	North: { dx: 0, dy: -1 },
-	South: { dx: 0, dy: 1 },
-	East: { dx: 1, dy: 0 },
-	West: { dx: -1, dy: 0 },
-};
-
-export const OPPOSITE_DIRECTIONS: Record<Direction, Direction> = {
-	North: "South",
-	South: "North",
-	East: "West",
-	West: "East",
-};
-
-export const getRandomStartAndGoal = (maze: Maze | null, width: number, height: number): { start: Cell; goal: Cell } => {
+export const getRandomStartAndGoal = (maze: Maze | null, rows: number, cols: number): { start: Cell; goal: Cell } => {
 	if (!maze) {
 		return {
 			start: { x: 0, y: 0 },
-			goal: { x: width - 1, y: height - 1 },
+			goal: { x: rows - 1, y: cols - 1 },
 		};
 	}
 
@@ -113,17 +18,15 @@ export const getRandomStartAndGoal = (maze: Maze | null, width: number, height: 
 
 	let startKey = keys[Math.floor(Math.random() * keys.length)];
 	let goalKey = keys[Math.floor(Math.random() * keys.length)];
+	let startAndGoalAreOnSameRow = keyToCell(startKey).x === keyToCell(goalKey).x;
 
-	while (startKey === goalKey || keyToCoordinates(startKey)[0] === keyToCoordinates(goalKey)[0]) {
+	while (startKey === goalKey || startAndGoalAreOnSameRow) {
 		goalKey = keys[Math.floor(Math.random() * keys.length)];
 	}
 
-	const [startX, startY] = keyToCoordinates(startKey);
-	const [goalX, goalY] = keyToCoordinates(goalKey);
-
 	return {
-		start: { x: startX, y: startY },
-		goal: { x: goalX, y: goalY },
+		start: keyToCell(startKey),
+		goal: keyToCell(goalKey),
 	};
 };
 
