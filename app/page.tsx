@@ -27,7 +27,7 @@ export default function Home() {
 			</div> */}
 
 			<div className="max-w-screen-sm mx-auto mt-28 xl:col-span-full">
-				<MazeSvg className="w-full h-full shadow shadow-primary-content" rows={rows} cols={cols} cellSize={cellSize} />
+				<MazeSvg className="w-full h-full" rows={rows} cols={cols} cellSize={cellSize} />
 			</div>
 
 			{/* <div className="space-y-6 max-w-prose xl:mt-28 xl:flex xl:flex-col xl:justify-center">

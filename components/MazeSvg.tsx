@@ -19,7 +19,7 @@ interface MazeSvgProps {
  * @component
  * @example
  * return (
- * 	<MazeSvg maze={maze} start={start} goal={goal} cellSize={50} />
+ * 	<MazeSvg rows={20} cols={20} cellSize={50} className="w-full h-full" />
  * )
  */
 const MazeSvg = ({ rows, cols, cellSize, className }: MazeSvgProps) => {
@@ -212,16 +212,7 @@ const MazeSvg = ({ rows, cols, cellSize, className }: MazeSvgProps) => {
 					Solve speed ({solveAnimationTimeInSeconds < 1 ? "<1" : solveAnimationTimeInSeconds}
 					{solveAnimationTimeInSeconds === 1 ? " second" : " seconds"})
 				</label>
-				<input
-					name="delaySlider"
-					type="range"
-					min={1}
-					max="100"
-					className="range"
-					onChange={handleDelayChange}
-					value={solveSpeed}
-					disabled={isLoading}
-				/>
+				<input name="delaySlider" type="range" min={1} max="100" className="range" onChange={handleDelayChange} value={solveSpeed} disabled={isLoading} />
 			</div>
 		</div>
 	);
