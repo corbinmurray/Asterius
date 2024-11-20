@@ -3,27 +3,38 @@ import { generateMaze } from "@/lib/generateMaze";
 import { getRandomStartAndGoal, parseMazeToGraph } from "@/lib/mazeUtils";
 import { Cell, Direction, Maze } from "@/lib/shared";
 import { solveMaze } from "@/lib/solveMaze";
+import useWindowSize from "@/lib/useWindowSize";
 import * as d3 from "d3";
 import { ChangeEvent, MutableRefObject, useEffect, useRef, useState } from "react";
 
 interface MazeSvgProps {
-	rows: number;
-	cols: number;
-	cellSize: number;
 	className: string;
 }
 
 /**
- * Component for displaying the maze and displaying the A* algorithm in real-time
+ * Component for displaying the maze and displaying the A* algorithm in real-time. The component is self-responsive for device widths
  *
  * @component
  * @example
  * return (
- * 	<MazeSvg rows={20} cols={20} cellSize={50} className="w-full h-full" />
+ * 	<MazeSvg className="w-full h-full" />
  * )
  */
-const MazeSvg = ({ rows, cols, cellSize, className }: MazeSvgProps) => {
+const MazeSvg = ({ className }: MazeSvgProps) => {
 	const DEFAULT_SOLVE_SPEED = 50;
+
+	const { width } = useWindowSize();
+
+	// Responsive configuration
+	const config = {
+		sm: { rows: 10, cols: 10, cellSize: 50 },
+		md: { rows: 20, cols: 20, cellSize: 25 },
+		lg: { rows: 30, cols: 30, cellSize: 18.75 },
+		xl: { rows: 30, cols: 30, cellSize: 18.75 },
+	};
+
+	// Determine the current configuration
+	const { rows, cols, cellSize } = width < 640 ? config.sm : width < 768 ? config.md : width < 1024 ? config.lg : config.xl;
 
 	const svgRef = useRef<SVGSVGElement | null>(null);
 
@@ -79,8 +90,6 @@ const MazeSvg = ({ rows, cols, cellSize, className }: MazeSvgProps) => {
 	useEffect(() => {
 		const totalTimeToAnimateSolutionInSeconds = Math.round(((visitedNodes.length + solutionPath.length) * calculateDelay(rows, cols, solveSpeed)) / 1000);
 
-		console.log("totalTimeToAnimateSolutionInSeconds", totalTimeToAnimateSolutionInSeconds);
-
 		setSolveAnimationTimeInSeconds(totalTimeToAnimateSolutionInSeconds);
 	}, [solveSpeed, rows, cols, visitedNodes, solutionPath]);
 
@@ -89,8 +98,6 @@ const MazeSvg = ({ rows, cols, cellSize, className }: MazeSvgProps) => {
 	 */
 	const handleSolveMaze = () => {
 		setIsLoading(true);
-
-		console.log("Solve speed", solveSpeed);
 
 		const intensities = visitedNodes.map((x) => x.intensity ?? 0);
 		const minIntensity = Math.min(...intensities);
@@ -101,7 +108,6 @@ const MazeSvg = ({ rows, cols, cellSize, className }: MazeSvgProps) => {
 		const svg = d3.select(svgRef.current);
 		svg.selectAll(".fill-warning").remove();
 		svg.selectAll(".fill-accent").remove();
-		console.log("Calculated animation speed", calculateDelay(rows, cols, solveSpeed));
 
 		// Animate visited nodes
 		visitedNodes.forEach((node, index) => {
@@ -324,5 +330,5 @@ const calculateDelay = (rows: number, cols: number, solveSpeed: number): number 
 	const baseDelay = 100000;
 
 	// Calculate initial delay
-	return baseDelay / (Math.sqrt(area) * solveSpeed);
+	return baseDelay / (Math.sqrt(area) * solveSpeed * 10);
 };
