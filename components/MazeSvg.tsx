@@ -42,7 +42,7 @@ const MazeSvg = ({ maze, start, goal, cellSize, className, solutionPath, visited
 				cellSize,
 				directions,
 				{
-					currentCellClassName: "stroke-primary",
+					currentCellClassName: "stroke-base-content",
 					goalCellClassName: "fill-error",
 					startCellClassName: "fill-success",
 				},
@@ -66,11 +66,10 @@ const MazeSvg = ({ maze, start, goal, cellSize, className, solutionPath, visited
 			const { x, y } = node;
 
 			svg
-				.append("rect")
-				.attr("x", x * cellSize + 2)
-				.attr("y", y * cellSize + 2)
-				.attr("width", cellSize - 4)
-				.attr("height", cellSize - 4)
+				.append("circle")
+				.attr("cx", x * cellSize + cellSize / 2)
+				.attr("cy", y * cellSize + cellSize / 2)
+				.attr("r", cellSize / 6)
 				.attr("fill", "currentColor")
 				.attr("class", "fill-warning shadow-lg")
 				.attr("opacity", 0)
@@ -95,7 +94,7 @@ const MazeSvg = ({ maze, start, goal, cellSize, className, solutionPath, visited
 					.attr("cy", y * cellSize + cellSize / 2)
 					.attr("r", cellSize / 6)
 					.attr("fill", "currentColor")
-					.attr("class", "fill-accent")
+					.attr("class", "fill-accent shadow")
 					.attr("opacity", 0)
 					.transition()
 					.delay(index * 100) // Delay each path node for sequential animation
@@ -109,7 +108,6 @@ const MazeSvg = ({ maze, start, goal, cellSize, className, solutionPath, visited
 
 	return (
 		<div className="flex flex-col gap-6 w-full h-full">
-
 			{/* Legend */}
 			<div className="flex flex-row justify-center items-center gap-4 md:gap-8">
 				<div className="flex items-center gap-2">
@@ -125,8 +123,8 @@ const MazeSvg = ({ maze, start, goal, cellSize, className, solutionPath, visited
 			<svg ref={svgRef} className={className} viewBox="0 0 500 500" />
 
 			<div className="flex flex-row justify-center gap-12">
-				<button className="btn btn-outline btn-accent md:btn-wide capitalize" disabled={isLoading} onClick={() => (maze = generateMaze(10, 10))}>
-					new maze
+				<button className="btn btn-outline btn-secondary md:btn-wide capitalize" disabled={isLoading} onClick={() => (maze = generateMaze(10, 10))}>
+					generate new maze
 				</button>
 				<button className="btn btn-outline btn-primary md:btn-wide capitalize" disabled={isLoading} onClick={handleSolveMaze}>
 					solve maze
