@@ -18,9 +18,8 @@ export const getRandomStartAndGoal = (maze: Maze | null, rows: number, cols: num
 
 	let startKey = keys[Math.floor(Math.random() * keys.length)];
 	let goalKey = keys[Math.floor(Math.random() * keys.length)];
-	let startAndGoalAreOnSameRow = keyToCell(startKey).x === keyToCell(goalKey).x;
 
-	while (startKey === goalKey || startAndGoalAreOnSameRow) {
+	while (startKey === goalKey) {
 		goalKey = keys[Math.floor(Math.random() * keys.length)];
 	}
 

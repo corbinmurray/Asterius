@@ -1,17 +1,16 @@
 "use client";
 import { generateMaze } from "@/lib/generateMaze";
+import { getRandomStartAndGoal, parseMazeToGraph } from "@/lib/mazeUtils";
 import { Cell, Direction, Maze } from "@/lib/shared";
+import { solveMaze } from "@/lib/solveMaze";
 import * as d3 from "d3";
-import { MutableRefObject, useEffect, useRef, useState } from "react";
+import { ChangeEvent, MutableRefObject, useEffect, useRef, useState } from "react";
 
 interface MazeSvgProps {
-	maze: Maze;
-	start: Cell;
-	goal: Cell;
+	rows: number;
+	cols: number;
 	cellSize: number;
 	className: string;
-	solutionPath: Cell[];
-	visitedNodes: Cell[];
 }
 
 /**
@@ -23,9 +22,33 @@ interface MazeSvgProps {
  * 	<MazeSvg maze={maze} start={start} goal={goal} cellSize={50} />
  * )
  */
-const MazeSvg = ({ maze, start, goal, cellSize, className, solutionPath, visitedNodes }: MazeSvgProps) => {
+const MazeSvg = ({ rows, cols, cellSize, className }: MazeSvgProps) => {
+	const DEFAULT_SOLVE_SPEED = 50;
+
 	const svgRef = useRef<SVGSVGElement | null>(null);
+
+	const [maze, setMaze] = useState<Maze | null>(null);
+	const [startingCell, setStartingCell] = useState<Cell | null>(null);
+	const [goalCell, setGoalCell] = useState<Cell | null>(null);
+	const [visitedNodes, setVisitedNodes] = useState<Cell[]>([]);
+	const [solutionPath, setSolutionPath] = useState<Cell[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
+	const [solveSpeed, setSolveSpeed] = useState(DEFAULT_SOLVE_SPEED);
+	const [solveAnimationTimeInSeconds, setSolveAnimationTimeInSeconds] = useState(0);
+
+	// Generate maze
+	useEffect(() => {
+		const generatedMaze = generateMaze(rows, cols);
+		const { start, goal } = getRandomStartAndGoal(generatedMaze, rows, cols);
+		const graph = parseMazeToGraph(generatedMaze);
+		const { solutionPath, visitedNodes } = solveMaze(graph, start, goal);
+
+		setMaze(generatedMaze);
+		setStartingCell(start);
+		setGoalCell(goal);
+		setVisitedNodes(visitedNodes);
+		setSolutionPath(solutionPath);
+	}, [rows, cols]);
 
 	// Draw the maze
 	useEffect(() => {
@@ -46,24 +69,43 @@ const MazeSvg = ({ maze, start, goal, cellSize, className, solutionPath, visited
 					goalCellClassName: "fill-error",
 					startCellClassName: "fill-success",
 				},
-				start,
-				goal
+				startingCell,
+				goalCell
 			);
 		});
 	}, [maze, cellSize]);
+
+	// Track solve animation time
+	useEffect(() => {
+		const totalTimeToAnimateSolutionInSeconds = Math.round(((visitedNodes.length + solutionPath.length) * calculateDelay(rows, cols, solveSpeed)) / 1000);
+
+		console.log("totalTimeToAnimateSolutionInSeconds", totalTimeToAnimateSolutionInSeconds);
+
+		setSolveAnimationTimeInSeconds(totalTimeToAnimateSolutionInSeconds);
+	}, [solveSpeed, rows, cols, visitedNodes, solutionPath]);
 
 	/**
 	 * Handles showing the solved maze. Starts with showing the algorithm's 'thought process' (steps taken to find the 	solution path), then shows the solution path.
 	 */
 	const handleSolveMaze = () => {
 		setIsLoading(true);
+
+		console.log("Solve speed", solveSpeed);
+
+		const intensities = visitedNodes.map((x) => x.intensity ?? 0);
+		const minIntensity = Math.min(...intensities);
+		const maxIntensity = Math.max(...intensities);
+
+		const colorScale = d3.scaleLinear<string>().domain([minIntensity, maxIntensity]).range(["fill-error", "fill-success"]);
+
 		const svg = d3.select(svgRef.current);
 		svg.selectAll(".fill-warning").remove();
 		svg.selectAll(".fill-accent").remove();
+		console.log("Calculated animation speed", calculateDelay(rows, cols, solveSpeed));
 
 		// Animate visited nodes
 		visitedNodes.forEach((node, index) => {
-			const { x, y } = node;
+			const { x, y, intensity } = node;
 
 			svg
 				.append("circle")
@@ -71,19 +113,19 @@ const MazeSvg = ({ maze, start, goal, cellSize, className, solutionPath, visited
 				.attr("cy", y * cellSize + cellSize / 2)
 				.attr("r", cellSize / 6)
 				.attr("fill", "currentColor")
-				.attr("class", "fill-warning shadow-lg")
+				.attr("class", `${intensity ? colorScale(intensity) : "fill-warning"} marker-class-visited`)
 				.attr("opacity", 0)
 				.transition()
-				.delay(index * 100) // Delay each node for sequential animation
+				.delay(index * calculateDelay(rows, cols, solveSpeed)) // Delay each node for sequential animation
 				.duration(200)
 				.attr("opacity", 1);
 		});
 
 		// Erase visited nodes and animate solution path after delay
-		const totalVisitedTime = visitedNodes.length * 100 + 100;
+		const totalVisitedTime = visitedNodes.length * calculateDelay(rows, cols, solveSpeed);
 
 		setTimeout(() => {
-			svg.selectAll(".fill-warning").remove();
+			svg.selectAll(".marker-class-visited").remove();
 
 			solutionPath.forEach((node, index) => {
 				const { x, y } = node;
@@ -97,13 +139,44 @@ const MazeSvg = ({ maze, start, goal, cellSize, className, solutionPath, visited
 					.attr("class", "fill-accent shadow")
 					.attr("opacity", 0)
 					.transition()
-					.delay(index * 100) // Delay each path node for sequential animation
+					.delay(index * calculateDelay(rows, cols, solveSpeed)) // Delay each path node for sequential animation
 					.duration(150)
 					.attr("opacity", 1);
 			});
-
-			setIsLoading(false);
 		}, totalVisitedTime);
+
+		setTimeout(() => {
+			setIsLoading(false);
+		}, totalVisitedTime + solutionPath.length * calculateDelay(rows, cols, solveSpeed));
+	};
+
+	/**
+	 * Handles generating a new maze, start, goal, solutionPath, and visitedNodes
+	 */
+	const handleGenerateNewMaze = () => {
+		setIsLoading(true);
+
+		const generatedMaze = generateMaze(rows, cols);
+		const { start, goal } = getRandomStartAndGoal(generatedMaze, rows, cols);
+		const graph = parseMazeToGraph(generatedMaze);
+		const { solutionPath, visitedNodes } = solveMaze(graph, start, goal);
+
+		setMaze(generatedMaze);
+		setStartingCell(start);
+		setGoalCell(goal);
+		setVisitedNodes(visitedNodes);
+		setSolutionPath(solutionPath);
+		setSolveSpeed(DEFAULT_SOLVE_SPEED);
+		setIsLoading(false);
+	};
+
+	/**
+	 * Handles updating the animation delay
+	 * @param e The change event
+	 */
+	const handleDelayChange = (e: ChangeEvent<HTMLInputElement>) => {
+		e.preventDefault();
+		setSolveSpeed(Number.parseInt(e.currentTarget.value));
 	};
 
 	return (
@@ -123,12 +196,32 @@ const MazeSvg = ({ maze, start, goal, cellSize, className, solutionPath, visited
 			<svg ref={svgRef} className={className} viewBox="0 0 500 500" />
 
 			<div className="flex flex-row justify-center gap-12">
-				<button className="btn btn-outline btn-secondary md:btn-wide capitalize" disabled={isLoading} onClick={() => (maze = generateMaze(10, 10))}>
+				<button className="btn btn-outline btn-secondary md:btn-wide capitalize" disabled={isLoading} onClick={handleGenerateNewMaze}>
 					generate new maze
 				</button>
-				<button className="btn btn-outline btn-primary md:btn-wide capitalize" disabled={isLoading} onClick={handleSolveMaze}>
+				<button
+					className="btn btn-outline btn-primary md:btn-wide capitalize"
+					disabled={isLoading || !maze || !visitedNodes || !solutionPath}
+					onClick={handleSolveMaze}>
 					solve maze
 				</button>
+			</div>
+
+			<div className="flex flex-col justify-start gap-y-2">
+				<label htmlFor="delaySlider" className="capitalize">
+					Solve speed ({solveAnimationTimeInSeconds < 1 ? "<1" : solveAnimationTimeInSeconds}
+					{solveAnimationTimeInSeconds === 1 ? " second" : " seconds"})
+				</label>
+				<input
+					name="delaySlider"
+					type="range"
+					min={1}
+					max="100"
+					className="range"
+					onChange={handleDelayChange}
+					value={solveSpeed}
+					disabled={isLoading}
+				/>
 			</div>
 		</div>
 	);
@@ -224,4 +317,21 @@ const drawMazeCell = (
 			.attr("y2", (y + 1) * cellSize)
 			.attr("class", currentCellClassName);
 	}
+};
+
+/**
+ * Calculates the delay to be used for animating the solved maze. The function is inverse, the larger the maze (area [rows x cols]) the smaller the delay.
+ * The delay is constrained within reasonable bounds using min and max values.
+ *
+ * @param rows Number of rows in the maze
+ * @param cols Number of columns in the maze
+ * @param solveSpeed A multiplier to control the overall speed of the solving animation
+ * @returns A delay (in milliseconds) within the specified range
+ */
+const calculateDelay = (rows: number, cols: number, solveSpeed: number): number => {
+	const area = rows * cols;
+	const baseDelay = 100000;
+
+	// Calculate initial delay
+	return baseDelay / (Math.sqrt(area) * solveSpeed);
 };

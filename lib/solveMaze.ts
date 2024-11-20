@@ -24,7 +24,10 @@ export function solveMaze(graph: Record<string, Cell[]>, start: Cell, goal: Cell
 		let currentKey = Array.from(openSet).reduce((a, b) => (fScore[a] < fScore[b] ? a : b));
 		const currentCell = keyToCell(currentKey);
 
-		visitedNodes.push(currentCell);
+		visitedNodes.push({
+            ...currentCell,
+            intensity: fScore[currentKey]
+        });
 
 		// If the goal is reached
 		if (currentCell.x === goal.x && currentCell.y === goal.y) {

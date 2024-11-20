@@ -1,5 +1,5 @@
 export type Maze = Map<string, Set<Direction>>;
-export type Cell = { x: number; y: number };
+export type Cell = { x: number; y: number, intensity?: number };
 export type Direction = "North" | "South" | "East" | "West";
 
 export const cellToKey = (cell: Cell): string => `${cell.x},${cell.y}`;
