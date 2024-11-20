@@ -1,8 +1,8 @@
+import Navbar from "@/components/Navbar";
 import { THEMES } from "@/lib/constants";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
 
 const geistSans = localFont({
 	src: "./fonts/GeistVF.woff",
@@ -29,7 +29,9 @@ export default function RootLayout({
 		<html lang="en" data-theme={THEMES.DARK} className="scroll-smooth">
 			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
 				<Navbar className="px-8 md:px-12 lg:px-16 xl:px-20 2xl:px-24 py-2" />
-				<main>{children}</main>
+				<main>
+					<section className="container mx-auto p-3">{children}</section>
+				</main>
 			</body>
 		</html>
 	);

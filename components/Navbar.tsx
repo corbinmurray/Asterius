@@ -41,7 +41,7 @@ const Navbar = ({ className }: { className?: string | null }) => {
 	}, [navMenuOpen]);
 
 	return (
-		<header className="w-full z-20">
+		<header className="fixed top-0 w-full z-20">
 			<nav className={`${className} ${isScrollY ? "shadow-lg" : ""} transition-shadow navbar items-center justify-between w-full bg-base-100 py-5`}>
 				<button className="btn btn-square btn-ghost hover:bg-transparent">
 					<svg className="h-full w-full" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">

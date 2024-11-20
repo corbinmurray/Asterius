@@ -108,8 +108,7 @@ const MazeSvg = ({ maze, start, goal, cellSize, className, solutionPath, visited
 	};
 
 	return (
-		<div className="flex flex-col gap-12 w-full h-full">
-			<svg ref={svgRef} className={className} viewBox="0 0 500 500" />
+		<div className="flex flex-col gap-6 w-full h-full">
 
 			{/* Legend */}
 			<div className="flex flex-row justify-center items-center gap-4 md:gap-8">
@@ -122,6 +121,8 @@ const MazeSvg = ({ maze, start, goal, cellSize, className, solutionPath, visited
 					<span className="text-sm md:text-lg">Goal</span>
 				</div>
 			</div>
+
+			<svg ref={svgRef} className={className} viewBox="0 0 500 500" />
 
 			<div className="flex flex-row justify-center gap-12">
 				<button className="btn btn-outline btn-accent md:btn-wide capitalize" disabled={isLoading} onClick={() => (maze = generateMaze(10, 10))}>
