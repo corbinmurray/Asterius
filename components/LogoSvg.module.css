@@ -1,0 +1,16 @@
+.polygon {
+	@mixin dark {
+		color: var(--mantine-primary-color-filled);
+	}
+
+	@mixin light {
+        color: var(--mantine-color-dark-filled);
+	}
+}
+
+.text {
+	text-transform: capitalize;
+	font-weight: 500;
+	font-family: sans-serif;
+	color: var(--mantine-primary-color-contrast);
+}
