@@ -1,5 +1,5 @@
 "use client";
-import { AppShell, Burger, Flex, List } from "@mantine/core";
+import { AppShell, Burger, Container, Flex, List } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import React from "react";
 import ColorThemeSwitch from "./ColorThemeSwitch";
@@ -42,7 +42,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 				</List>
 			</AppShell.Navbar>
 
-			<AppShell.Main>{children}</AppShell.Main>
+			<AppShell.Main>
+				<Container p="0">{children}</Container>
+			</AppShell.Main>
 		</AppShell>
 	);
 }
