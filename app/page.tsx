@@ -1,3 +1,11 @@
+import classes from "./page.module.css";
+
 export default function HomePage() {
-  return <div>Home page</div>;
+	return (
+		<>
+			<section className={classes.section}>
+				<div>hello</div>
+			</section>
+		</>
+	);
 }
