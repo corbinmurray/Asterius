@@ -1,11 +1,5 @@
 .polygon {
-	@mixin dark {
-		color: var(--mantine-primary-color-filled);
-	}
-
-	@mixin light {
-        color: var(--mantine-color-dark-filled);
-	}
+	color: var(--mantine-primary-color-5)
 }
 
 .text {
