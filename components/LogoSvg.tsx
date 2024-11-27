@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import classes from "./LogoSvg.module.css";
+
 const LogoSvg = ({ height, width }: { height: number; width: number }) => {
 	return (
 		<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" height={height} width={width}>
@@ -11,7 +12,6 @@ const LogoSvg = ({ height, width }: { height: number; width: number }) => {
 				textAnchor="middle"
 				fill="currentColor"
 				fontSize="40"
-				fontFamily="Arial"
 				dy=".3em">
 				C
 			</text>
